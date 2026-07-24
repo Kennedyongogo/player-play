@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -17,28 +16,28 @@ import { useAuth } from "../context/AuthContext";
 import { colors } from "../theme";
 import BrandLogo from "../components/BrandLogo";
 import PasswordField from "../components/PasswordField";
+import { showError, showSuccess } from "../utils/swal";
 
 export default function LoginPage() {
   const { loginUser, isAuthenticated, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
     try {
       const res = await login({ email, password });
+      await showSuccess("Welcome back", `Signed in as ${res.data.user?.username || email}`);
       loginUser({ token: res.data.token, user: res.data.user });
       await refreshUser().catch(() => null);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.message || "Login failed");
+      await showError("Login failed", err.message || "Check your email and password");
     } finally {
       setLoading(false);
     }
@@ -68,11 +67,6 @@ export default function LoginPage() {
             <Typography color="text.secondary" sx={{ mb: 3 }}>
               Access your team, schedule, and lobby codes.
             </Typography>
-            {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
-            )}
             <Stack component="form" spacing={2} onSubmit={onSubmit}>
               <TextField label="Email" type="email" required fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
               <PasswordField

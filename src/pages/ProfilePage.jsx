@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Alert,
   Box,
   Button,
   FormControl,
@@ -16,6 +15,7 @@ import { changeMyPassword, updateMyProfile } from "../api";
 import { REGIONS } from "../constants";
 import { colors } from "../theme";
 import PasswordField from "../components/PasswordField";
+import { showError, showSuccess } from "../utils/swal";
 
 export default function ProfilePage() {
   const { user, refreshUser, logoutUser } = useAuth();
@@ -27,8 +27,6 @@ export default function ProfilePage() {
     avatarUrl: "",
   });
   const [passwords, setPasswords] = useState({ currentPassword: "", newPassword: "" });
-  const [msg, setMsg] = useState("");
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -42,26 +40,22 @@ export default function ProfilePage() {
   }, [user]);
 
   const saveProfile = async () => {
-    setMsg("");
-    setError("");
     try {
       await updateMyProfile(form);
       await refreshUser();
-      setMsg("Profile updated");
+      showSuccess("Profile updated");
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     }
   };
 
   const savePassword = async () => {
-    setMsg("");
-    setError("");
     try {
       await changeMyPassword(passwords);
       setPasswords({ currentPassword: "", newPassword: "" });
-      setMsg("Password updated");
+      showSuccess("Password updated");
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     }
   };
 
@@ -73,17 +67,6 @@ export default function ProfilePage() {
       <Typography color="text.secondary" sx={{ mb: 2.5 }}>
         {user?.email}
       </Typography>
-
-      {msg && (
-        <Alert severity="success" sx={{ mb: 2 }}>
-          {msg}
-        </Alert>
-      )}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
 
       <Stack
         spacing={2}

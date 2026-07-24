@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { Alert, Box, Button, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { Box, Button, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from "../api";
 import { formatDate } from "../constants";
 import { colors } from "../theme";
+import { showError, showInfo } from "../utils/swal";
 
 export default function NotificationsPage() {
   const [items, setItems] = useState([]);
   const [filter, setFilter] = useState("all");
-  const [msg, setMsg] = useState("");
 
   const load = () => {
     getNotifications({ limit: 50, unreadOnly: filter === "unread" ? "true" : undefined })
@@ -34,10 +34,10 @@ export default function NotificationsPage() {
   const markAll = async () => {
     try {
       await markAllNotificationsRead();
-      setMsg("All marked as read");
+      showInfo("All marked as read");
       load();
     } catch (err) {
-      setMsg(err.message);
+      showError(err.message);
     }
   };
 
@@ -52,12 +52,6 @@ export default function NotificationsPage() {
           Mark all read
         </Button>
       </Stack>
-
-      {msg && (
-        <Alert severity="info" sx={{ mb: 2 }} onClose={() => setMsg("")}>
-          {msg}
-        </Alert>
-      )}
 
       <Tabs value={filter} onChange={(_, v) => setFilter(v)} sx={{ mb: 2 }}>
         <Tab value="all" label="All" />

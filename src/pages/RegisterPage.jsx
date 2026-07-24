@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -25,6 +24,7 @@ import { REGIONS } from "../constants";
 import { colors } from "../theme";
 import BrandLogo from "../components/BrandLogo";
 import PasswordField from "../components/PasswordField";
+import { showError } from "../utils/swal";
 
 const steps = ["Account", "Profile", "Confirm"];
 
@@ -32,7 +32,6 @@ export default function RegisterPage() {
   const { loginUser, isAuthenticated, refreshUser } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(0);
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     email: "",
@@ -49,32 +48,30 @@ export default function RegisterPage() {
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const next = () => {
-    setError("");
     if (step === 0) {
       if (!form.email || !form.username || !form.password) {
-        setError("Fill in all account fields");
+        showError("Fill in all account fields");
         return;
       }
       if (form.password.length < 6) {
-        setError("Password must be at least 6 characters");
+        showError("Password must be at least 6 characters");
         return;
       }
       if (form.password !== form.confirmPassword) {
-        setError("Passwords do not match");
+        showError("Passwords do not match");
         return;
       }
     }
     if (step === 1 && !form.preferredRegion) {
-      setError("Select your preferred region");
+      showError("Select your preferred region");
       return;
     }
     setStep((s) => s + 1);
   };
 
   const submit = async () => {
-    setError("");
     if (!form.acceptTerms) {
-      setError("Please accept the terms");
+      showError("Please accept the terms");
       return;
     }
     setLoading(true);
@@ -90,7 +87,7 @@ export default function RegisterPage() {
       await refreshUser().catch(() => null);
       navigate("/dashboard");
     } catch (err) {
-      setError(err.message || "Registration failed");
+      showError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -162,12 +159,6 @@ export default function RegisterPage() {
                 </Step>
               ))}
             </Stepper>
-
-            {error && (
-              <Alert severity="error" sx={{ mb: 1.25, py: 0.25 }} onClose={() => setError("")}>
-                {error}
-              </Alert>
-            )}
 
             {step === 0 && (
               <Stack spacing={{ xs: 1.25, sm: 1.5 }}>

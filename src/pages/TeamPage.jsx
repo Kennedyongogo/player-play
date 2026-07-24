@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Alert,
   Avatar,
   Box,
   Button,
@@ -29,18 +28,16 @@ import {
 } from "../api";
 import { REGIONS } from "../constants";
 import { colors } from "../theme";
+import { showConfirm, showError, showInfo, showSuccess } from "../utils/swal";
 
 export default function TeamPage() {
   const { teams, refreshUser } = useAuth();
   const [team, setTeam] = useState(null);
   const [role, setRole] = useState(null);
-  const [error, setError] = useState("");
-  const [msg, setMsg] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [form, setForm] = useState({ name: "", tag: "", region: "", logoUrl: "", motto: "" });
   const [invite, setInvite] = useState({ username: "", email: "" });
-  const [createdInvite, setCreatedInvite] = useState(null);
 
   const load = async () => {
     const membership = teams[0];
@@ -56,7 +53,7 @@ export default function TeamPage() {
       const res = await getTeam(id);
       setTeam(res.data.team);
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     }
   };
 
@@ -66,20 +63,18 @@ export default function TeamPage() {
   }, [teams]);
 
   const onCreate = async () => {
-    setError("");
     try {
       await createTeam(form);
       await refreshUser();
       setCreateOpen(false);
-      setMsg("Team created");
+      showSuccess("Team created");
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     }
   };
 
   const onSave = async () => {
     if (!team) return;
-    setError("");
     try {
       const res = await updateTeam(team.id, {
         name: team.name,
@@ -89,32 +84,36 @@ export default function TeamPage() {
         region: team.region,
       });
       setTeam(res.data.team);
-      setMsg("Team updated");
+      showSuccess("Team updated");
       await refreshUser();
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     }
   };
 
   const onInvite = async () => {
-    setError("");
     try {
       const res = await invitePlayer(team.id, invite);
-      setCreatedInvite(res.data.invite);
-      setMsg("Invite created");
+      const code = res.data.invite?.inviteCode;
+      showInfo("Invite created", code ? `Invite code: ${code} — share with your teammate` : undefined);
       setInviteOpen(false);
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     }
   };
 
   const onRemove = async (userId) => {
+    const confirmed = await showConfirm(
+      "Remove member?",
+      "They will be removed from your team roster."
+    );
+    if (!confirmed) return;
     try {
       await removeMember(team.id, userId);
       await load();
-      setMsg("Member removed");
+      showSuccess("Member removed");
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     }
   };
 
@@ -127,11 +126,6 @@ export default function TeamPage() {
         <Typography color="text.secondary" sx={{ mb: 3 }}>
           Create a team to register for tournaments, or accept an invite from your captain.
         </Typography>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
         <Button variant="contained" onClick={() => setCreateOpen(true)}>
           Create team
         </Button>
@@ -158,22 +152,6 @@ export default function TeamPage() {
           </Stack>
         )}
       </Stack>
-
-      {msg && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setMsg("")}>
-          {msg}
-        </Alert>
-      )}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-      {createdInvite && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          Invite code: <strong>{createdInvite.inviteCode}</strong> — share with your teammate
-        </Alert>
-      )}
 
       {team && (
         <Grid container spacing={2}>

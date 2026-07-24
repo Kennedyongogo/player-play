@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  Alert,
   Box,
   Button,
   Card,
@@ -27,13 +26,12 @@ import {
 import { formatCategory, formatDate, formatPrize } from "../constants";
 import StatusBadge from "../components/StatusBadge";
 import { colors } from "../theme";
+import { showConfirm, showError, showSuccess } from "../utils/swal";
 
 export default function TournamentsPage() {
   const { teams, isCaptain } = useAuth();
   const [items, setItems] = useState([]);
   const [regs, setRegs] = useState([]);
-  const [error, setError] = useState("");
-  const [msg, setMsg] = useState("");
   const [selected, setSelected] = useState(null);
   const [teamId, setTeamId] = useState("");
 
@@ -47,7 +45,7 @@ export default function TournamentsPage() {
       setRegs(rRes.data?.registrations || []);
     } catch (err) {
       setItems([]);
-      setError(err.message);
+      showError(err.message);
     }
   };
 
@@ -62,28 +60,32 @@ export default function TournamentsPage() {
   }, [teams]);
 
   const onRegister = async () => {
-    setError("");
     if (!teamId) {
-      setError("Select a team first");
+      showError("Select a team first");
       return;
     }
     try {
       await registerTeamForTournament(selected.id, teamId);
-      setMsg("Registration submitted");
+      showSuccess("Registration submitted");
       setSelected(null);
       load();
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     }
   };
 
   const onCancel = async (id) => {
+    const confirmed = await showConfirm(
+      "Cancel registration?",
+      "Your team will be withdrawn from this tournament."
+    );
+    if (!confirmed) return;
     try {
       await cancelRegistration(id);
-      setMsg("Registration cancelled");
+      showSuccess("Registration cancelled");
       load();
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
     }
   };
 
@@ -95,17 +97,6 @@ export default function TournamentsPage() {
       <Typography color="text.secondary" sx={{ mb: 3 }}>
         Browse events and register your team (captains only).
       </Typography>
-
-      {msg && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setMsg("")}>
-          {msg}
-        </Alert>
-      )}
-      {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
-          {error}
-        </Alert>
-      )}
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {items.map((t) => (
