@@ -1,6 +1,6 @@
 {
-  "name": "edams-vihiga",
-  "version": "0.0.0",
+  "name": "apac-south-player",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "start": "vite --host",

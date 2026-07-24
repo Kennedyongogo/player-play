@@ -1,41 +1,77 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ThemeProvider, CssBaseline, Box, CircularProgress } from "@mui/material";
-import { theme } from "./theme";
+import { theme, colors } from "./theme";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import AuthPage from "./pages/AuthPage";
-import AppLayout from "./components/AppLayout";
-import WalletPage from "./pages/WalletPage";
-import SettingsPage from "./pages/SettingsPage";
-import PlayPage from "./pages/PlayPage";
-import MatchPage from "./pages/MatchPage";
-import JoinInviteGate from "./pages/JoinInviteGate";
-import InstallPrompt from "./components/InstallPrompt";
-import { peekPendingInvite } from "./utils/invite";
+import PlayerLayout from "./components/PlayerLayout";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from "./pages/DashboardPage";
+import TeamPage from "./pages/TeamPage";
+import TournamentsPage from "./pages/TournamentsPage";
+import SchedulePage from "./pages/SchedulePage";
+import StatsPage from "./pages/StatsPage";
+import NotificationsPage from "./pages/NotificationsPage";
+import ProfilePage from "./pages/ProfilePage";
+import AcceptInvitePage from "./pages/AcceptInvitePage";
 
 function BootScreen() {
   return (
-    <Box sx={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "#050508" }}>
-      <CircularProgress sx={{ color: "#F5C518" }} />
+    <Box sx={{ minHeight: "100dvh", display: "grid", placeItems: "center", bgcolor: colors.bg }}>
+      <CircularProgress sx={{ color: colors.primary }} />
     </Box>
   );
 }
 
-function LoginRoute() {
+function RequireAuth({ children }) {
   const { isAuthenticated, booting } = useAuth();
   if (booting) return <BootScreen />;
-  if (isAuthenticated) {
-    const pending = peekPendingInvite();
-    if (pending) return <Navigate to={`/join/${pending}`} replace />;
-    return <Navigate to="/play" replace />;
-  }
-  return <AuthPage />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return children;
 }
 
-function CatchAllRoute() {
-  const { isAuthenticated, booting } = useAuth();
+function AppRoutes() {
+  const { booting } = useAuth();
   if (booting) return <BootScreen />;
-  if (isAuthenticated) return <Navigate to="/play" replace />;
-  return <Navigate to="/" replace />;
+
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+      <Route
+        path="/invite/:code"
+        element={
+          <RequireAuth>
+            <AcceptInvitePage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/invite"
+        element={
+          <RequireAuth>
+            <AcceptInvitePage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        element={
+          <RequireAuth>
+            <PlayerLayout />
+          </RequireAuth>
+        }
+      >
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/team" element={<TeamPage />} />
+        <Route path="/tournaments" element={<TournamentsPage />} />
+        <Route path="/schedule" element={<SchedulePage />} />
+        <Route path="/stats" element={<StatsPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+      </Route>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
 }
 
 export default function App() {
@@ -44,19 +80,7 @@ export default function App() {
       <CssBaseline />
       <AuthProvider>
         <BrowserRouter>
-          <InstallPrompt />
-          <Routes>
-            <Route path="/" element={<LoginRoute />} />
-            <Route path="/login" element={<Navigate to="/" replace />} />
-            <Route path="/join/:inviteCode" element={<JoinInviteGate />} />
-            <Route element={<AppLayout />}>
-              <Route path="/wallet" element={<WalletPage />} />
-              <Route path="/play" element={<PlayPage />} />
-              <Route path="/play/:matchId" element={<MatchPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Route>
-            <Route path="*" element={<CatchAllRoute />} />
-          </Routes>
+          <AppRoutes />
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>

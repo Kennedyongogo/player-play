@@ -1,20 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import {
-  clearSession,
-  getMe,
-  getStoredUser,
-  saveSession,
-  updateStoredUser,
-} from "../api";
+import { clearSession, getMe, getStoredUser, saveSession, updateStoredUser } from "../api";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(getStoredUser);
-  const [booting, setBooting] = useState(!!getStoredUser());
+  const [teams, setTeams] = useState([]);
+  const [booting, setBooting] = useState(!!localStorage.getItem("apac_south_token"));
 
   useEffect(() => {
-    if (!getStoredUser()) {
+    const token = localStorage.getItem("apac_south_token");
+    if (!token) {
       setBooting(false);
       return;
     }
@@ -22,11 +18,13 @@ export function AuthProvider({ children }) {
     getMe()
       .then((res) => {
         setUser(res.data.user);
+        setTeams(res.data.teams || []);
         updateStoredUser(res.data.user);
       })
       .catch(() => {
         clearSession();
         setUser(null);
+        setTeams([]);
       })
       .finally(() => setBooting(false));
   }, []);
@@ -39,18 +37,29 @@ export function AuthProvider({ children }) {
   const logoutUser = useCallback(() => {
     clearSession();
     setUser(null);
+    setTeams([]);
   }, []);
 
   const refreshUser = useCallback(async () => {
     const res = await getMe();
     setUser(res.data.user);
+    setTeams(res.data.teams || []);
     updateStoredUser(res.data.user);
-    return res.data.user;
+    return res.data;
   }, []);
 
   const value = useMemo(
-    () => ({ user, booting, loginUser, logoutUser, refreshUser, isAuthenticated: !!user }),
-    [user, booting, loginUser, logoutUser, refreshUser]
+    () => ({
+      user,
+      teams,
+      booting,
+      loginUser,
+      logoutUser,
+      refreshUser,
+      isAuthenticated: !!user,
+      isCaptain: teams.some((t) => t.role === "captain"),
+    }),
+    [user, teams, booting, loginUser, logoutUser, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
