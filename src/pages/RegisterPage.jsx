@@ -24,6 +24,7 @@ import { useAuth } from "../context/AuthContext";
 import { REGIONS } from "../constants";
 import { colors } from "../theme";
 import BrandLogo from "../components/BrandLogo";
+import PasswordField from "../components/PasswordField";
 
 const steps = ["Account", "Profile", "Confirm"];
 
@@ -130,14 +131,13 @@ export default function RegisterPage() {
               <Stack spacing={2}>
                 <TextField label="Email" type="email" required fullWidth value={form.email} onChange={set("email")} />
                 <TextField label="Username" required fullWidth value={form.username} onChange={set("username")} />
-                <TextField label="Password" type="password" required fullWidth value={form.password} onChange={set("password")} />
-                <TextField
+                <PasswordField label="Password" required value={form.password} onChange={set("password")} autoComplete="new-password" />
+                <PasswordField
                   label="Confirm password"
-                  type="password"
                   required
-                  fullWidth
                   value={form.confirmPassword}
                   onChange={set("confirmPassword")}
+                  autoComplete="new-password"
                 />
                 <Button variant="contained" onClick={next}>
                   Continue

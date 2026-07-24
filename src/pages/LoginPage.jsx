@@ -16,6 +16,7 @@ import { login } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { colors } from "../theme";
 import BrandLogo from "../components/BrandLogo";
+import PasswordField from "../components/PasswordField";
 
 export default function LoginPage() {
   const { loginUser, isAuthenticated, refreshUser } = useAuth();
@@ -74,13 +75,12 @@ export default function LoginPage() {
             )}
             <Stack component="form" spacing={2} onSubmit={onSubmit}>
               <TextField label="Email" type="email" required fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
-              <TextField
+              <PasswordField
                 label="Password"
-                type="password"
                 required
-                fullWidth
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
               />
               <Button type="submit" variant="contained" size="large" disabled={loading}>
                 {loading ? "Signing in..." : "Sign in"}
