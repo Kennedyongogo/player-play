@@ -99,56 +99,126 @@ export default function RegisterPage() {
   return (
     <Box
       sx={{
-        minHeight: "100dvh",
-        py: 6,
-        px: 2,
+        height: "100dvh",
+        maxHeight: "100dvh",
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        px: { xs: 1.5, sm: 2 },
+        py: { xs: 1, sm: 1.5 },
+        boxSizing: "border-box",
         background: `
           radial-gradient(ellipse at 80% 10%, rgba(124,58,237,0.22), transparent 50%),
           radial-gradient(ellipse at 10% 90%, rgba(0,194,255,0.1), transparent 40%)
         `,
       }}
     >
-      <Container maxWidth="sm">
-        <Card sx={{ borderColor: "rgba(124,58,237,0.35)" }}>
-          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-            <BrandLogo variant="full" height={72} link={false} sx={{ mb: 2 }} />
-            <Typography variant="h4" sx={{ mb: 3 }}>
+      <Container maxWidth="sm" sx={{ py: 0, maxHeight: "100%" }}>
+        <Card
+          sx={{
+            borderColor: "rgba(124,58,237,0.35)",
+            maxHeight: "calc(100dvh - 16px)",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <CardContent
+            sx={{
+              p: { xs: 2, sm: 2.5, md: 3 },
+              "&:last-child": { pb: { xs: 2, sm: 2.5, md: 3 } },
+              overflow: "hidden",
+            }}
+          >
+            <BrandLogo
+              variant="full"
+              height={40}
+              link={false}
+              sx={{ mb: 1, maxWidth: 180 }}
+            />
+            <Typography
+              variant="h5"
+              sx={{
+                mb: { xs: 1.25, sm: 1.5 },
+                fontSize: { xs: "1.25rem", sm: "1.4rem" },
+                fontFamily: "Orbitron, sans-serif",
+                fontWeight: 700,
+              }}
+            >
               Create player account
             </Typography>
-            <Stepper activeStep={step} alternativeLabel sx={{ mb: 4 }}>
+
+            <Stepper
+              activeStep={step}
+              alternativeLabel
+              sx={{
+                mb: { xs: 1.5, sm: 2 },
+                "& .MuiStepLabel-label": { fontSize: { xs: "0.7rem", sm: "0.75rem" } },
+                "& .MuiSvgIcon-root": { fontSize: { xs: "1.15rem", sm: "1.25rem" } },
+              }}
+            >
               {steps.map((label) => (
                 <Step key={label}>
                   <StepLabel>{label}</StepLabel>
                 </Step>
               ))}
             </Stepper>
+
             {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
+              <Alert severity="error" sx={{ mb: 1.25, py: 0.25 }} onClose={() => setError("")}>
                 {error}
               </Alert>
             )}
+
             {step === 0 && (
-              <Stack spacing={2}>
-                <TextField label="Email" type="email" required fullWidth value={form.email} onChange={set("email")} />
-                <TextField label="Username" required fullWidth value={form.username} onChange={set("username")} />
-                <PasswordField label="Password" required value={form.password} onChange={set("password")} autoComplete="new-password" />
+              <Stack spacing={{ xs: 1.25, sm: 1.5 }}>
+                <TextField
+                  label="Email"
+                  type="email"
+                  required
+                  fullWidth
+                  size="small"
+                  value={form.email}
+                  onChange={set("email")}
+                />
+                <TextField
+                  label="Username"
+                  required
+                  fullWidth
+                  size="small"
+                  value={form.username}
+                  onChange={set("username")}
+                />
+                <PasswordField
+                  label="Password"
+                  required
+                  size="small"
+                  value={form.password}
+                  onChange={set("password")}
+                  autoComplete="new-password"
+                />
                 <PasswordField
                   label="Confirm password"
                   required
+                  size="small"
                   value={form.confirmPassword}
                   onChange={set("confirmPassword")}
                   autoComplete="new-password"
                 />
-                <Button variant="contained" onClick={next}>
+                <Button variant="contained" onClick={next} fullWidth>
                   Continue
                 </Button>
               </Stack>
             )}
+
             {step === 1 && (
-              <Stack spacing={2}>
-                <FormControl fullWidth required>
+              <Stack spacing={{ xs: 1.25, sm: 1.5 }}>
+                <FormControl fullWidth required size="small">
                   <InputLabel>Preferred region</InputLabel>
-                  <Select label="Preferred region" value={form.preferredRegion} onChange={set("preferredRegion")}>
+                  <Select
+                    label="Preferred region"
+                    value={form.preferredRegion}
+                    onChange={set("preferredRegion")}
+                  >
                     {REGIONS.map((r) => (
                       <MenuItem key={r} value={r}>
                         {r}
@@ -156,7 +226,13 @@ export default function RegisterPage() {
                     ))}
                   </Select>
                 </FormControl>
-                <TextField label="Discord (optional)" fullWidth value={form.discordUsername} onChange={set("discordUsername")} />
+                <TextField
+                  label="Discord (optional)"
+                  fullWidth
+                  size="small"
+                  value={form.discordUsername}
+                  onChange={set("discordUsername")}
+                />
                 <Stack direction="row" spacing={1}>
                   <Button variant="outlined" onClick={() => setStep(0)}>
                     Back
@@ -167,25 +243,40 @@ export default function RegisterPage() {
                 </Stack>
               </Stack>
             )}
+
             {step === 2 && (
-              <Stack spacing={2}>
-                <Box sx={{ p: 2, borderRadius: 2, bgcolor: colors.elevated, border: `1px solid ${colors.border}` }}>
-                  <Typography variant="body2" color="text.secondary">
+              <Stack spacing={{ xs: 1.25, sm: 1.5 }}>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    borderRadius: 2,
+                    bgcolor: colors.elevated,
+                    border: `1px solid ${colors.border}`,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
                     Email
                   </Typography>
-                  <Typography fontWeight={600}>{form.email}</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography fontWeight={600} fontSize="0.95rem" noWrap>
+                    {form.email}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.75, display: "block" }}>
                     Username
                   </Typography>
-                  <Typography fontWeight={600}>{form.username}</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                  <Typography fontWeight={600} fontSize="0.95rem">
+                    {form.username}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.75, display: "block" }}>
                     Region
                   </Typography>
-                  <Typography fontWeight={600}>{form.preferredRegion}</Typography>
+                  <Typography fontWeight={600} fontSize="0.95rem">
+                    {form.preferredRegion}
+                  </Typography>
                 </Box>
                 <Button
                   variant={form.acceptTerms ? "contained" : "outlined"}
                   onClick={() => setForm((f) => ({ ...f, acceptTerms: !f.acceptTerms }))}
+                  size="small"
                 >
                   {form.acceptTerms ? "✓ Terms accepted" : "Accept community terms"}
                 </Button>
@@ -199,7 +290,8 @@ export default function RegisterPage() {
                 </Stack>
               </Stack>
             )}
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5, fontSize: "0.8rem" }}>
               Already registered?{" "}
               <Link component={RouterLink} to="/login" sx={{ color: colors.primaryLight }}>
                 Log in
