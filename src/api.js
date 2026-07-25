@@ -56,6 +56,22 @@ export async function register(payload) {
   return request("/api/auth/register", { method: "POST", body: JSON.stringify(payload) });
 }
 
+export async function forgotPassword(payload) {
+  return request("/api/auth/forgot-password", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function resetPassword(payload) {
+  return request("/api/auth/reset-password", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function verifyEmail(payload) {
+  return request("/api/auth/verify-email", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export async function startDiscordAuth() {
+  return request("/api/auth/discord");
+}
+
 export async function getMe() {
   return request("/api/users/me");
 }
@@ -134,6 +150,13 @@ export async function revokeInvite(inviteId) {
   return request(`/api/teams/invites/${inviteId}`, { method: "DELETE" });
 }
 
+export async function transferCaptain(teamId, userId) {
+  return request(`/api/teams/${teamId}/transfer-captain`, {
+    method: "POST",
+    body: JSON.stringify({ userId }),
+  });
+}
+
 export async function getMyLobbyCodes() {
   return request("/api/lobbies/mine/codes");
 }
@@ -152,6 +175,63 @@ export async function markNotificationRead(id) {
 
 export async function markAllNotificationsRead() {
   return request("/api/notifications/read-all", { method: "PATCH" });
+}
+
+export async function getUnreadCount() {
+  return request("/api/notifications/unread-count");
+}
+
+export async function getScores(params = {}) {
+  return request(`/api/scores?${qs(params)}`);
+}
+
+export async function getAnnouncements(params = {}) {
+  return request(`/api/announcements?${qs({ published: "true", ...params })}`);
+}
+
+export async function getBrackets(params = {}) {
+  return request(`/api/brackets?${qs(params)}`);
+}
+
+export async function getStreams(params = {}) {
+  return request(`/api/streams?${qs(params)}`);
+}
+
+/** Multipart upload — do NOT set Content-Type: application/json, browser sets the boundary. */
+export async function uploadFile(kind, file) {
+  const base = getBaseUrl();
+  const token = localStorage.getItem(TOKEN_KEY);
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+
+  try {
+    const res = await fetch(`${base}/api/uploads/${kind}`, {
+      method: "POST",
+      body: formData,
+      signal: controller.signal,
+      headers: {
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.message || "Upload failed");
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
+  } catch (err) {
+    if (err.name === "AbortError") throw new Error("Upload timed out");
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export function saveSession({ token, user }) {

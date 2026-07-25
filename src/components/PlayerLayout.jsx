@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Avatar,
   Badge,
@@ -26,8 +26,11 @@ import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { getUnreadCount } from "../api";
 import { colors } from "../theme";
 import BrandLogo from "./BrandLogo";
+
+const UNREAD_POLL_MS = 30000;
 
 const WIDTH = 260;
 
@@ -108,7 +111,25 @@ export default function PlayerLayout() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [open, setOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { user } = useAuth();
+
+  useEffect(() => {
+    let alive = true;
+    const load = () => {
+      getUnreadCount()
+        .then((res) => {
+          if (alive) setUnreadCount(res.data?.unreadCount || 0);
+        })
+        .catch(() => {});
+    };
+    load();
+    const interval = setInterval(load, UNREAD_POLL_MS);
+    return () => {
+      alive = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   return (
     <Box sx={{ minHeight: "100dvh", display: "flex", bgcolor: "background.default" }}>
@@ -161,7 +182,7 @@ export default function PlayerLayout() {
             Welcome{user?.username ? `, ${user.username}` : ""}
           </Typography>
           <IconButton component={NavLink} to="/notifications" color="inherit">
-            <Badge color="error" variant="dot">
+            <Badge color="error" badgeContent={unreadCount} max={99} invisible={unreadCount === 0}>
               <NotificationsOutlinedIcon />
             </Badge>
           </IconButton>

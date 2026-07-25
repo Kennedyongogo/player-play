@@ -24,7 +24,7 @@ import { REGIONS } from "../constants";
 import { colors } from "../theme";
 import BrandLogo from "../components/BrandLogo";
 import PasswordField from "../components/PasswordField";
-import { showError } from "../utils/swal";
+import { showError, Swal } from "../utils/swal";
 
 const steps = ["Account", "Profile", "Confirm"];
 
@@ -85,6 +85,21 @@ export default function RegisterPage() {
       });
       loginUser({ token: res.data.token, user: res.data.user });
       await refreshUser().catch(() => null);
+
+      if (res.data.emailVerificationToken) {
+        await Swal.fire({
+          icon: "info",
+          title: "Verify your email",
+          html:
+            "Email delivery isn't configured yet. Verify your address using the link below:<br/><br/>" +
+            `<a href="/verify-email?token=${res.data.emailVerificationToken}" style="color:#A78BFA">Verify email now</a>`,
+          background: "#111827",
+          color: "#F8FAFC",
+          confirmButtonColor: "#7C3AED",
+          confirmButtonText: "Continue to dashboard",
+        });
+      }
+
       navigate("/dashboard");
     } catch (err) {
       showError(err.message || "Registration failed");

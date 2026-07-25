@@ -17,6 +17,7 @@ import { getMyLobbyCodes, getMyRegistrations, getNotifications } from "../api";
 import { formatDate } from "../constants";
 import { colors } from "../theme";
 import StatusBadge from "../components/StatusBadge";
+import LiveScores from "../components/LiveScores";
 
 const KPI = [
   {
@@ -74,6 +75,9 @@ export default function DashboardPage() {
 
   const primaryTeam = teams[0]?.team || teams[0]?.Team;
   const nextMatch = schedule[0];
+  const teamIds = teams.map((m) => m.team?.id || m.Team?.id).filter(Boolean);
+  const liveTournamentId =
+    regs.find((r) => r.status === "approved")?.Tournament?.id || regs[0]?.Tournament?.id || null;
   const kpiValues = {
     registrations: regs.length,
     upcoming: schedule.length,
@@ -195,6 +199,8 @@ export default function DashboardPage() {
       </Box>
 
       <Stack spacing={2}>
+        <LiveScores tournamentId={liveTournamentId} teamIds={teamIds} />
+
         <Card>
           <CardContent>
             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>

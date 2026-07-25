@@ -1,29 +1,62 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
   Card,
   CardContent,
   Container,
+  Divider,
   Link,
   Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { Link as RouterLink, Navigate, useNavigate } from "react-router-dom";
-import { login } from "../api";
+import { Link as RouterLink, Navigate, useNavigate, useSearchParams } from "react-router-dom";
+import { getMe, login, saveSession, startDiscordAuth } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { colors } from "../theme";
 import BrandLogo from "../components/BrandLogo";
 import PasswordField from "../components/PasswordField";
 import { showError, showSuccess } from "../utils/swal";
 
+const DISCORD_ERROR_MESSAGES = {
+  discord_denied: "Discord sign-in was cancelled.",
+  discord_not_configured: "Discord sign-in is not configured yet.",
+  discord_failed: "Discord sign-in failed. Please try again.",
+};
+
 export default function LoginPage() {
   const { loginUser, isAuthenticated, refreshUser } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [discordLoading, setDiscordLoading] = useState(false);
+
+  useEffect(() => {
+    const discordToken = searchParams.get("discord_token");
+    const errorParam = searchParams.get("error");
+
+    if (discordToken) {
+      (async () => {
+        try {
+          saveSession({ token: discordToken, user: null });
+          const res = await getMe();
+          loginUser({ token: discordToken, user: res.data.user });
+          await refreshUser().catch(() => null);
+          navigate("/dashboard", { replace: true });
+        } catch (err) {
+          await showError("Discord sign-in failed", err.message);
+          setSearchParams({}, { replace: true });
+        }
+      })();
+    } else if (errorParam) {
+      showError("Sign-in error", DISCORD_ERROR_MESSAGES[errorParam] || "Something went wrong signing in.");
+      setSearchParams({}, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
@@ -40,6 +73,17 @@ export default function LoginPage() {
       await showError("Login failed", err.message || "Check your email and password");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onDiscord = async () => {
+    setDiscordLoading(true);
+    try {
+      const res = await startDiscordAuth();
+      window.location.href = res.data.url;
+    } catch (err) {
+      await showError("Discord sign-in unavailable", err.message);
+      setDiscordLoading(false);
     }
   };
 
@@ -76,10 +120,39 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
               />
+              <Box sx={{ textAlign: "right", mt: -1 }}>
+                <Link
+                  component={RouterLink}
+                  to="/forgot-password"
+                  variant="body2"
+                  sx={{ color: colors.primaryLight }}
+                >
+                  Forgot password?
+                </Link>
+              </Box>
               <Button type="submit" variant="contained" size="large" disabled={loading}>
                 {loading ? "Signing in..." : "Sign in"}
               </Button>
             </Stack>
+
+            <Divider sx={{ my: 2.5, borderColor: colors.border }}>or</Divider>
+
+            <Button
+              variant="outlined"
+              size="large"
+              fullWidth
+              disabled={discordLoading}
+              onClick={onDiscord}
+              sx={{
+                borderColor: "#5865F2",
+                color: "#fff",
+                bgcolor: "rgba(88,101,242,0.15)",
+                "&:hover": { borderColor: "#5865F2", bgcolor: "rgba(88,101,242,0.25)" },
+              }}
+            >
+              {discordLoading ? "Redirecting..." : "Continue with Discord"}
+            </Button>
+
             <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
               No account?{" "}
               <Link component={RouterLink} to="/register" sx={{ color: colors.primaryLight }}>
