@@ -25,6 +25,10 @@ const DISCORD_ERROR_MESSAGES = {
   discord_failed: "Discord sign-in failed. Please try again.",
 };
 
+// Only compress on short viewports (e.g. landscape phones), never on normal screens.
+const short = "@media (max-height: 640px)";
+const veryShort = "@media (max-height: 480px)";
+
 export default function LoginPage() {
   const { loginUser, isAuthenticated, refreshUser } = useAuth();
   const navigate = useNavigate();
@@ -90,28 +94,46 @@ export default function LoginPage() {
   return (
     <Box
       sx={{
-        minHeight: "100dvh",
-        display: "grid",
-        placeItems: "center",
-        py: 6,
+        height: "100dvh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        py: { xs: 2, sm: 3 },
         px: 2,
+        overflow: "hidden",
+        boxSizing: "border-box",
         background: `
           radial-gradient(ellipse at 20% 20%, rgba(124,58,237,0.25), transparent 50%),
           radial-gradient(ellipse at 80% 80%, rgba(0,194,255,0.12), transparent 45%)
         `,
+        [short]: { py: 1.5, alignItems: "flex-start", overflowY: "auto" },
       }}
     >
-      <Container maxWidth="sm">
+      <Container maxWidth="sm" sx={{ px: { xs: 0, sm: 3 } }}>
         <Card sx={{ borderColor: "rgba(124,58,237,0.35)" }}>
-          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-            <BrandLogo variant="full" height={72} link={false} sx={{ mb: 2 }} />
-            <Typography variant="h4" sx={{ mb: 1 }}>
+          <CardContent
+            sx={{
+              p: { xs: 3, md: 4 },
+              "&:last-child": { pb: { xs: 3, md: 4 } },
+              [short]: { p: 2.5, "&:last-child": { pb: 2.5 } },
+            }}
+          >
+            <BrandLogo
+              variant="full"
+              height={72}
+              link={false}
+              sx={{ mb: 2, [short]: { height: 48, mb: 1.5 }, [veryShort]: { height: 40, mb: 1 } }}
+            />
+            <Typography variant="h4" sx={{ mb: 1, [short]: { fontSize: "1.5rem", mb: 0.5 } }}>
               Player login
             </Typography>
-            <Typography color="text.secondary" sx={{ mb: 3 }}>
+            <Typography
+              color="text.secondary"
+              sx={{ mb: 3, [short]: { mb: 2, fontSize: "0.9rem" }, [veryShort]: { display: "none" } }}
+            >
               Access your team, schedule, and lobby codes.
             </Typography>
-            <Stack component="form" spacing={2} onSubmit={onSubmit}>
+            <Stack component="form" spacing={2} onSubmit={onSubmit} sx={{ [short]: { gap: 0.5 } }}>
               <TextField label="Email" type="email" required fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
               <PasswordField
                 label="Password"
@@ -135,7 +157,7 @@ export default function LoginPage() {
               </Button>
             </Stack>
 
-            <Divider sx={{ my: 2.5, borderColor: colors.border }}>or</Divider>
+            <Divider sx={{ my: 2.5, borderColor: colors.border, [short]: { my: 1.5 } }}>or</Divider>
 
             <Button
               variant="outlined"
@@ -153,7 +175,11 @@ export default function LoginPage() {
               {discordLoading ? "Redirecting..." : "Continue with Discord"}
             </Button>
 
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 3 }}>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ mt: 3, [short]: { mt: 1.5 } }}
+            >
               No account?{" "}
               <Link component={RouterLink} to="/register" sx={{ color: colors.primaryLight }}>
                 Register
